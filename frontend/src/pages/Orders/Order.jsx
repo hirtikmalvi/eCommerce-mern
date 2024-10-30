@@ -141,7 +141,7 @@ const Order = () => {
                       />
                     </td>
                     <td className="px-6 py-4 font-semibold text-black">
-                      <Link to={`/product/${item._id}`}>{item.name}</Link>
+                      <Link to={`/product/${item.product}`}>{item.name}</Link>
                     </td>
                     <td className="px-6 py-4 text-center font-semibold text-black">
                       {item.quantity}
