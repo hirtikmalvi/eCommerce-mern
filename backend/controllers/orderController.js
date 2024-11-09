@@ -1,6 +1,7 @@
 const Order = require("../models/orderModel");
 const Product = require("../models/productModel");
 const asyncHandler = require("../middlewares/asyncHandler");
+const timers = new Map(); // Stores timers for each order
 
 //Utility Function
 const calculatePrices = (orderItems) => {
@@ -71,6 +72,18 @@ const createOrder = asyncHandler(async (req, res) => {
   });
 
   const createdOrder = await order.save();
+
+  // Start a timer to delete the order if it is not paid within 1.5 minutes
+  const deleteTimeOut = setTimeout(async () => {
+    const foundOrder = await Order.findById(createdOrder._id);
+    if (foundOrder && !foundOrder.isPaid) {
+      await Order.findByIdAndDelete(createdOrder._id);
+      console.log(`Order ${createdOrder._id} has been deleted due to timeout.`);
+    }
+    timers.delete(createdOrder._id.toString());
+  }, 60 * 1000);
+  timers.set(createdOrder._id.toString(), deleteTimeOut);
+
   return res.status(200).json(createdOrder);
 });
 
@@ -152,6 +165,22 @@ const markOrderAsPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
+    // Cancel the deletion timer if payment is successful
+    const timer = timers.get(order._id.toString());
+    if (timer) {
+      clearTimeout(timer);
+      timers.delete(order._id.toString());
+    }
+
+    order.orderItems.map(async (item) => {
+      const product = await Product.findById(item.product);
+      console.log("Before: ", product.countInStock);
+      product.countInStock = product.countInStock - item.quantity;
+      console.log("After: ", product.countInStock);
+
+      await product.save();
+    });
+
     order.isPaid = true;
     order.paidAt = Date.now();
     order.paymentResult = {

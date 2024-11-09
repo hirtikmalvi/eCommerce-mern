@@ -69,23 +69,28 @@ const removeProduct = asyncHandler(async (req, res) => {
 });
 
 const fetchProducts = asyncHandler(async (req, res) => {
-  const pageSize = 6;
+  const pageSize = 8;
+  const page = Number(req.query.page) || 1;
   const keyword = req.query.keyword
     ? { name: { $regex: req.query.keyword, $options: "i" } }
     : {};
 
   const count = await Product.countDocuments({ ...keyword });
 
-  const products = await Product.find({ ...keyword }).limit(pageSize);
+  const products = await Product.find({ ...keyword })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+
+  const hasMore = page < Math.ceil(count / pageSize);
 
   if (products.length == 0) {
     return res.status(404).json({ message: "No Products Available" });
   } else {
     return res.status(200).json({
       products,
-      page: 1,
+      page,
       pages: Math.ceil(count / pageSize),
-      hasMore: false,
+      hasMore,
     });
   }
 });
@@ -103,7 +108,6 @@ const fetchProductById = asyncHandler(async (req, res) => {
 const fetchAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({})
     .populate("category")
-    .limit(12)
     .sort({ createAt: -1 });
 
   if (products.length == 0) {

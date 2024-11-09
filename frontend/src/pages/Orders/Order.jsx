@@ -1,5 +1,5 @@
-import { act, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { act, useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -15,6 +15,14 @@ import {
 
 const Order = () => {
   const { id: orderId } = useParams();
+  const navigate = useNavigate();
+
+  // Set the timeout duration to match the backend (e.g., 10 seconds = 10000 ms)
+  const PAYMENT_TIMEOUT = 60000;
+
+  // Set initial countdown based on the payment timeout
+  const [timeLeft, setTimeLeft] = useState(PAYMENT_TIMEOUT / 1000);
+
   const {
     data: order,
     refetch,
@@ -22,7 +30,26 @@ const Order = () => {
     error,
   } = useGetOrderDetailsQuery(orderId);
 
-  console.log(order);
+  useEffect(() => {
+    // Start the timeout when the component mounts
+    const timeoutId = setTimeout(() => {
+      // Check if the order is unpaid after the timeout
+      if (!order?.isPaid) {
+        toast.error("Payment window has expired. Please place a new order.");
+        navigate("/shop"); // Redirect to orders page or another appropriate route
+      }
+    }, PAYMENT_TIMEOUT);
+
+    const timeLeftInterval = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime - 1);
+    }, 1000);
+
+    // Clear the timeout if the order is paid or on component unmount
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(timeLeftInterval);
+    };
+  }, [order, navigate, PAYMENT_TIMEOUT]);
 
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
   const [deliverOrder, { isLoading: loadingDeliver }] =
@@ -165,6 +192,14 @@ const Order = () => {
           <div className="space-y-4 mb-3 border p-8 rounded-l shadow-md border-gray-200">
             <h4 className="text-xl font-semibold text-gray-900">Shipping:</h4>
             <div className="text-base text-gray-700 flex flex-col">
+              {!order.isPaid ? (
+                <span>
+                  <span className="font-bold">Time Left:</span> {timeLeft}{" "}
+                  seconds
+                </span>
+              ) : (
+                <></>
+              )}
               <span>
                 <span className="font-bold">Order Id:</span> {order._id}
               </span>

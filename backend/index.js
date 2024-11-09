@@ -36,8 +36,9 @@ app.use("/api/orders", orderRoutes); //Order Routes
 app.get("/api/config/paypal", (req, res) => {
   res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
+// console.log(__dirname);
 
-app.use("/uploads", express.static(path.join(path.resolve() + "/uploads")));
+app.use("/uploads", express.static(path.join(__dirname + "/uploads")));
 
 app.listen(PORT, () => {
   console.log(`Server Started at ${PORT}`);

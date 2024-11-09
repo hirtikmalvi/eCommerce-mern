@@ -102,7 +102,7 @@ const Shop = () => {
             <h2 className="py-2 px-2 mb-2 w-fit border rounded-xl bg-pink-500 text-white">
               Filter by Categories
             </h2>
-            {isCategoriesLoading ? (
+            {isCategoriesLoading && filteredProductsLoading ? (
               <Loader />
             ) : (
               categories.map((category) => (
@@ -161,24 +161,28 @@ const Shop = () => {
               <h2 className="py-2 px-2 mb-2 w-fit border rounded-xl bg-pink-500 text-white">
                 Price
               </h2>
-              {pricesArr.map((price, index) => (
-                <div className="flex items-center my-2" key={index}>
-                  <input
-                    id={`price-filter-${index}`}
-                    type="radio"
-                    name="default-radio"
-                    value={price}
-                    onClick={() => handlePriceRadio(price)}
-                    className="w-4 h-4 text-pink-500 bg-gray-100 border-gray-300"
-                  />
-                  <label
-                    htmlFor={`price-filter-${index}`}
-                    className="ms-2 text-sm font-medium text-gray-900"
-                  >
-                    {`₹ ${price[0]} - ${price[1]}`}
-                  </label>
-                </div>
-              ))}
+              {isCategoriesLoading && filteredProductsLoading ? (
+                <Loader />
+              ) : (
+                pricesArr.map((price, index) => (
+                  <div className="flex items-center my-2" key={index}>
+                    <input
+                      id={`price-filter-${index}`}
+                      type="radio"
+                      name="default-radio"
+                      value={price}
+                      onClick={() => handlePriceRadio(price)}
+                      className="w-4 h-4 text-pink-500 bg-gray-100 border-gray-300"
+                    />
+                    <label
+                      htmlFor={`price-filter-${index}`}
+                      className="ms-2 text-sm font-medium text-gray-900"
+                    >
+                      {`₹ ${price[0]} - ${price[1]}`}
+                    </label>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Clear Filters Button */}

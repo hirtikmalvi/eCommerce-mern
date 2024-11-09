@@ -6,7 +6,6 @@ import { useGetMyOrdersQuery } from "../../redux/api/orderApiSlice";
 
 const UserOrder = () => {
   const { data: orders, isLoading, error } = useGetMyOrdersQuery();
-  console.table(orders);
 
   return (
     <div className="container mx-auto p-4 lg:px-20 xl:px-24 2xl:px-36">
@@ -78,7 +77,7 @@ const UserOrder = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 font-semibold text-black  text-center">
-                        {order.isPaid ? (
+                        {order.isDelivered ? (
                           <span className="bg-green-400 px-4 py-2 rounded-xl text-white">
                             Delivered
                           </span>
